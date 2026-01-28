@@ -2,6 +2,10 @@
 
 A modern task management application built with React, featuring a clean and intuitive UI for managing your daily tasks.
 
+## Live Demo
+
+🚀 **Try the application here:** https://superb-pavlova-6ab616.netlify.app/
+
 ## Features
 
 - ✅ **Create Tasks** - Add new tasks with titles and detailed descriptions
