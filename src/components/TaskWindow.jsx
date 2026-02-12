@@ -1,36 +1,55 @@
 import TextField from '@mui/material/TextField';
 import TaskBar from './Taskbar.jsx';
-import { TaskList } from '../contexts/TaskList.jsx';
 import { useContext, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import { useState } from 'react';
+import { useState, useMemo, useReducer } from 'react';
 import * as React from 'react';
-import Snackbar from '@mui/material/Snackbar';
 import Box from '@mui/material/Box';
 import ButtonGroup from '@mui/material/ButtonGroup';
-
-import SnackBar from './SnackBar.jsx';
 import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import { SnackBarContext } from '../contexts/SnackBarContext.jsx';
+import { useTasks } from '../contexts/TaskList.jsx';
 export default function TaskWindow() {
     // SnackBar////////////////
-    const [open, setOpen] = React.useState(false);
+    const { showSnack } = useContext(SnackBarContext)
     const [deleteSnackBar, setDeleteSnackBar] = React.useState(false);
-    const { tasks, setTasks } = useContext(TaskList);
-    const [taskInput, setTaskInput] = useState("");
-    const [displayType,setDisplayType]=useState("all")
-    let todoTasks=tasks;
-     const completedTasks=tasks.filter((t) => {return t.completed})
-    const pendingTasks=tasks.filter((c) => {return !c.completed})
-    if(displayType==="completed"){
-        todoTasks=completedTasks
-    }else if(displayType==="pending"){
-        todoTasks=pendingTasks
-    }else{todoTasks=tasks}
+    const { tasks, dispatch } = useTasks()
 
-    const taskItem = todoTasks.map((t) => {
-        return <TaskBar key={t.id} details={t.details} completed={t.completed} id={t.id} title={t.task} openSnackBar={() => setDeleteSnackBar(true)} closeSnackBar={() => { setDeleteSnackBar(false) }} />
-    })
-    let nextId = Date.now()
+    const [taskInput, setTaskInput] = useState("");
+    const [displayType, setDisplayType] = useState("all")
+    let todoTasks = tasks;
+
+    const completedTasks =
+        useMemo(() => {
+            return tasks.filter((t) => {
+                console.log("task is completed")
+                return t.completed
+
+            })
+        }, [tasks])
+
+
+    const pendingTasks =
+        useMemo(() => {
+            return tasks.filter((c) => {
+                console.log("task is not completed")
+                return !c.completed
+            })
+        }, [tasks])
+
+    if (displayType === "completed") {
+        todoTasks = completedTasks
+    } else if (displayType === "pending") {
+        todoTasks = pendingTasks
+    } else { todoTasks = tasks }
+
+
+
 
 
     const handleTasks = (e) => {
@@ -40,11 +59,9 @@ export default function TaskWindow() {
         if (taskInput.trim() === "") {
             return;
         }
-        const newTask = [...tasks, { id: nextId, task: taskInput, completed: false }]
-        setTasks(newTask);
-        setOpen(true);
+        dispatch({ type: "added", payload: { nTask: taskInput } })
+        showSnack("Task Has been added successfully")
         setTaskInput("")
-        localStorage.setItem("tasks", JSON.stringify(newTask));
     }
 
     const handleClose = (event, reason) => {
@@ -52,41 +69,82 @@ export default function TaskWindow() {
             return;
         }
 
-        setOpen(false);
+
         setDeleteSnackBar(false);
     };
 
     // 3 Buttons///////////////
+
+    function handleDisplayAll() {
+        setDisplayType("all")
+    }
+
+    function handleDisplayCompleted() {
+
+        setDisplayType("completed")
+
+    }
+    function handleDisplayPending() {
+        setDisplayType("pending")
+
+
+    }
     const buttons = [
-        <Button onClick={handleDisplayAll}  key="all">All Tasks</Button>,
+        <Button onClick={handleDisplayAll} key="all">All Tasks</Button>,
         <Button onClick={handleDisplayCompleted} key="completed">Completed</Button>,
         <Button onClick={handleDisplayPending} key="pending">Pending</Button>,
     ];
+    // Deleted Tasks////////////////
+    const handleDelete = (todo) => {
 
-   
-    
-    function handleDisplayAll() {
-        setDisplayType("all")
-}
-    function handleDisplayCompleted() {
-        setDisplayType("completed")
-}
-    function handleDisplayPending() {
-        setDisplayType("pending")
-}
+        showSnack("Task has been deleted successfully")
+        handleClose();
+        dispatch({ type: "deleted", payload: { id: todo.id } })
+    }
+    //    Completed Tasks////////////////////
+    // const handleComplete= (todo) => {
+
+    //         showSnack("Task has been completed")
+    //         dispatch({type:"completed",payload:{id:todo.id}})    
+    // }
+    // Dialougeue////////////////
+    const [DialField, setDialField] = React.useState({ id: null, TaskTitle: "", taskDetails: "" });
+    const [openDial, setOpenDial] = React.useState(false);
+
+    const handleClickOpenDial = (todo) => {
+        setDialField({ id: todo.id, TaskTitle: todo.TaskTitle, taskDetails: todo.details })
+        setOpenDial(true);
+    };
+
+    const handleCloseDial = () => {
+        setOpenDial(false);
+    };
+    const handleSubmit = (event) => {
+        event.preventDefault();
+
+
+        showSnack("Task has been Edited successfully")
+
+        handleCloseDial();
+        dispatch({ type: "edited", payload: { id: DialField.id, task: DialField.TaskTitle, details: DialField.taskDetails } })
+    };
 
 
     useEffect(() => {
-        const storedTasks = JSON.parse(localStorage.getItem("tasks"));
-       if (storedTasks) {
-    setTasks(storedTasks);
-  }
+        dispatch({ type: "get" })
     }, [])
+    const taskItem = todoTasks.map((t) => {
+        return <TaskBar key={t.id} details={t.details} completed={t.completed} id={t.id} title={t.task} openEditDialog={handleClickOpenDial} openDeletemodal={handleDelete} />
+    })
     return (
         <div>
-         
+
             <div style={{
-                width: "400px",
+                width: {
+                    xs: "60%",   // موبايل
+                    sm: 350,     // تابلت
+                    md: 400      // ديسكتوب
+                },
                 backgroundColor: "rgba(255, 255, 255, 0.3)",
                 backdropFilter: "blur(10px)",
                 border: "1px solid rgba(255, 255, 255, 0.3)",
@@ -99,22 +157,22 @@ export default function TaskWindow() {
                 justifyContent: "center",
                 alignItems: "center"
             }}>
-                <Typography sx={{fontSize:"25px"}} style={{ color: "white" }}>My Tasks</Typography>
-                   <Box
-                sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    color: '#ffffff',
-                    alignItems: 'center',
-                    '& > *': {
-                        m: 1,
-                    },
-                }}
-            >
-                <ButtonGroup color='white' size="small" aria-label="Small button group">
-                    {buttons}
-                </ButtonGroup>
-            </Box>
+                <Typography sx={{ fontSize: "25px" }} style={{ color: "white" }}>My Tasks</Typography>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        color: '#ffffff',
+                        alignItems: 'center',
+                        '& > *': {
+                            m: 1,
+                        },
+                    }}
+                >
+                    <ButtonGroup color='white' size="small" aria-label="Small button group">
+                        {buttons}
+                    </ButtonGroup>
+                </Box>
                 {taskItem}
 
 
@@ -147,11 +205,48 @@ export default function TaskWindow() {
                 </div>
 
             </div>
-            <div>
+            <Dialog open={openDial} onClose={handleCloseDial}>
+                <DialogTitle>Edit Task</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Edit your task details here.
+                    </DialogContentText>
+                    <form onSubmit={handleSubmit} id="subscription-form">
+                        <TextField
+                            autoFocus
+                            required
+                            margin="dense"
+                            id="name"
 
-                <SnackBar openSnackBar={open} closeSnackBar={handleClose} message="Your Task Added Successfully" />
-                <SnackBar openSnackBar={deleteSnackBar} closeSnackBar={handleClose} message="Your Task deleted Successfully" />
-            </div>
+                            label="Task Title"
+                            type="text"
+                            fullWidth
+                            variant="standard"
+                            value={DialField.TaskTitle}
+                            onChange={(e) => setDialField({ ...DialField, TaskTitle: e.target.value })}
+                        />
+                        <TextField
+                            autoFocus
+                            required
+                            margin="dense"
+                            id="name"
+
+                            label="Task Details"
+                            type="text"
+                            fullWidth
+                            variant="standard"
+                            value={DialField.taskDetails}
+                            onChange={(e) => setDialField({ ...DialField, taskDetails: e.target.value })}
+                        />
+                    </form>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDial}>Cancel</Button>
+                    <Button type="submit" form="subscription-form">
+                        Done                        </Button>
+                </DialogActions>
+            </Dialog>
+
         </div>
 
 

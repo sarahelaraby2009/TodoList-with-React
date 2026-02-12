@@ -6,7 +6,7 @@ export default function SnackBar({openSnackBar,closeSnackBar,message}) {
             <Snackbar
                 open={openSnackBar}
                 anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-                autoHideDuration={3000}
+                autoHideDuration={2000}
                 onClose={closeSnackBar}
                 sx={{
                     '& .MuiSnackbarContent-root': {

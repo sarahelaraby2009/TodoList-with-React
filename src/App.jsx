@@ -1,10 +1,9 @@
 import "./App.css";
-import { TaskList } from "./contexts/TaskList";
-import TaskBar from "./components/Taskbar";
 import TaskWindow from "./components/TaskWindow.jsx";
 import { useState } from "react";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-
+import { SnackBarProvider } from "./contexts/SnackBarContext.jsx";
+import ReducerContext from "./contexts/TaskList";
 const theme = createTheme({
   typography: {
     fontFamily: [
@@ -16,26 +15,27 @@ const theme = createTheme({
 
 export default function App() {
 
-  const [tasks, setTasks] = useState([
-    { id: 1, task: "learning react", details: "learning react", completed: false },
-    { id: 2, task: "learning javascript", details: "learning", completed: false },
-    { id: 3, task: "learning html", details: "learning html", completed: false }
-  ])
-
 
   return (
 
     <ThemeProvider theme={theme}>
+      <ReducerContext>
 
-      <div style={{ height: "100vh" }} >
-        
-        <TaskList.Provider value={{ tasks, setTasks }} >
-          <TaskWindow />
-        </TaskList.Provider>
+    
+      <SnackBarProvider>
 
 
-      </div>
 
+        <div style={{ height: "100vh" }} >
+
+          
+            <TaskWindow />
+          
+
+          
+        </div>
+      </SnackBarProvider>
+      </ReducerContext>
     </ThemeProvider>
 
 
