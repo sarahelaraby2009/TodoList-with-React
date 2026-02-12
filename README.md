@@ -23,17 +23,14 @@ A modern task management application built with React, featuring a clean and int
 - **Material-UI** (v7.3.7) - Comprehensive component library
 - **React Router DOM** (v7.12.0) - Client-side routing
 - **Emotion** (v11.14.0) - CSS-in-JS styling library
-- **Font Awesome** (v7.1.0) - Icon library
-- **ESLint** - Code quality and linting
 
 ## Project Structure
 
+
+
 ```
-src/
-├── App.jsx                 # Main application component
-├── App.css                # App styling
-├── main.jsx                # Entry point
-├── index.css              # Global styles
+
+
 ├── components/
 │   ├── TaskWindow.jsx     # Main task display and input component
 │   ├── Taskbar.jsx        # Individual task item with actions
